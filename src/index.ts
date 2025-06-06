@@ -9,28 +9,28 @@ import { z } from 'zod';
 
 // Project NANDA company information
 const COMPANY_INFO = {
-  name: "Google",
-  description: `Google is a company that offers a variety of services, including search, email, and maps.`,
+  name: "Starbucks",
+  description: `Starbucks is the world's largest coffeehouse chain, serving specialty coffee, tea, and food items. Founded in 1971 in Seattle, Washington, Starbucks has become a global brand known for its premium coffee experience, welcoming atmosphere, and commitment to ethical sourcing and community building.`,
   focus_areas: [
-    "Search",
-    "Email",
-    "Maps",
-    "Gmail",
-    "Google Drive",
-    "Google Cloud",
-    "Model Context Protocol (MCP) Extensions"
+    "Premium Coffee & Beverages",
+    "Food & Pastries",
+    "Digital Innovation & Mobile Ordering",
+    "Store Experience & Design",
+    "Ethical Sourcing & Sustainability",
+    "Community Building",
+    "Starbucks Rewards Program"
   ],
-  stage: "Series B",
-  approach: "NA",
-  website: "https://www.google.com",
-  contact: "info@google.com",
-  network: "Global technology network"
+  stage: "Established Public Company",
+  approach: "Customer-first experience with focus on quality, community, and sustainability",
+  website: "https://www.starbucks.com",
+  contact: "customerservice@starbucks.com",
+  network: "Global coffeehouse network with over 33,000 stores worldwide"
 };
 
 // Create the MCP server instance
 function createMcpServer(): McpServer {
   const server = new McpServer({
-    name: "google-server",
+    name: "starbucks-server",
     version: "1.0.0"
   });
 
@@ -207,7 +207,7 @@ async function startServer(): Promise<void> {
   app.get('/health', (_req: express.Request, res: express.Response) => {
     res.json({ 
       status: 'healthy', 
-      service: 'google-mcp-server',
+      service: 'starbucks-mcp-server',
       version: '1.0.0',
       timestamp: new Date().toISOString()
     });
@@ -216,9 +216,9 @@ async function startServer(): Promise<void> {
   // Root endpoint with basic info
   app.get('/', (_req: express.Request, res: express.Response) => {
     res.json({
-      name: 'Google MCP Server',
+      name: 'Starbucks MCP Server',
       version: '1.0.0',
-      description: 'Model Context Protocol server for Google information',
+      description: 'Model Context Protocol server for Starbucks information',
       endpoints: {
         mcp: '/mcp',
         health: '/health'

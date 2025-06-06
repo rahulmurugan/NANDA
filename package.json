@@ -1,7 +1,7 @@
 {
-  "name": "google-mcp-server",
+  "name": "starbucks-mcp-server",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for Google information",
+  "description": "Model Context Protocol server for Starbucks information",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -15,7 +15,8 @@
   },
   "keywords": [
     "mcp",
-    "google",
+    "starbucks",
+    "coffee",
     "decentralized-ai",
     "typescript"
   ],

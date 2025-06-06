@@ -5,7 +5,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 
 async function testMcpServer() {
   try {
-    console.log('🔌 Connecting to Project NANDA MCP Server...');
+    console.log('🔌 Connecting to Starbucks MCP Server...');
     
     const client = new Client({
       name: 'test-client',

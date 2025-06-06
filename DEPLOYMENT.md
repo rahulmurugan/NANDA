@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This document provides step-by-step instructions for deploying the Dream Venture Labs MCP Server to various platforms.
+This document provides step-by-step instructions for deploying the MCP Server to various platforms.
 
 ## Railway Deployment (Recommended)
 
@@ -34,9 +34,7 @@ No additional configuration needed!
 ### Step 4: Access Your MCP Server
 
 After deployment, you'll get a URL like:
-```
-https://dream-venture-labs-mcp-server-production.railway.app
-```
+
 
 Your MCP endpoint will be:
 ```
@@ -121,8 +119,8 @@ CMD ["npm", "start"]
 ### Build and Run
 
 ```bash
-docker build -t dream-venture-labs-mcp .
-docker run -p 3000:3000 dream-venture-labs-mcp
+docker build -t starbucks-mcp .
+docker run -p 3000:3000 starbucks-mcp
 ```
 
 ## Environment Variables
@@ -146,7 +144,7 @@ Response:
 ```json
 {
   "status": "healthy",
-  "service": "dream-venture-labs-mcp-server",
+  "service": "starbucks-mcp-server",
   "version": "1.0.0",
   "timestamp": "2023-..."
 }
