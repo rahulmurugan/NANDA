@@ -9,27 +9,28 @@ import { z } from 'zod';
 
 // Project NANDA company information
 const COMPANY_INFO = {
-  name: "Project NANDA",
-  description: `Project NANDA (Networked Agents And Decentralized AI) is pioneering the future of decentralized intelligence at MIT Media Lab. We build on Anthropic's Model Context Protocol (MCP) to create a true Internet of AI Agents, where billions of specialized AI agents collaborate across a decentralized architecture. Each agent performs discrete functions while communicating seamlessly, navigating autonomously, socializing, learning, earning and transacting. NANDA adds the critical infrastructure needed for distributed agent intelligence at scale, including discovery mechanisms, search functionality, authentication protocols, and verifiable agent-to-agent exchange accountability.`,
+  name: "Google",
+  description: `Google is a company that offers a variety of services, including search, email, and maps.`,
   focus_areas: [
-    "Decentralized AI Infrastructure",
-    "Agent-to-Agent Communication Protocols",
-    "AI Agent Discovery and Search",
-    "Secure Agent Authentication",
-    "Distributed Knowledge Networks",
+    "Search",
+    "Email",
+    "Maps",
+    "Gmail",
+    "Google Drive",
+    "Google Cloud",
     "Model Context Protocol (MCP) Extensions"
   ],
-  stage: "MIT Research Project",
-  approach: "Open-source development and academic research collaboration",
-  network: "Global network of universities and research institutions including MIT, Cornell, ETH Zurich, University of Tokyo, and 15+ international partners",
-  website: "https://nanda.media.mit.edu",
-  contact: "dec-ai@media.mit.edu"
+  stage: "Series B",
+  approach: "NA",
+  website: "https://www.google.com",
+  contact: "info@google.com",
+  network: "Global technology network"
 };
 
 // Create the MCP server instance
 function createMcpServer(): McpServer {
   const server = new McpServer({
-    name: "project-nanda-server",
+    name: "google-server",
     version: "1.0.0"
   });
 
@@ -206,7 +207,7 @@ async function startServer(): Promise<void> {
   app.get('/health', (_req, res) => {
     res.json({ 
       status: 'healthy', 
-      service: 'project-nanda-mcp-server',
+      service: 'google-mcp-server',
       version: '1.0.0',
       timestamp: new Date().toISOString()
     });
@@ -215,9 +216,9 @@ async function startServer(): Promise<void> {
   // Root endpoint with basic info
   app.get('/', (_req, res) => {
     res.json({
-      name: 'Project NANDA MCP Server',
+      name: 'Google MCP Server',
       version: '1.0.0',
-      description: 'Model Context Protocol server for Project NANDA information',
+      description: 'Model Context Protocol server for Google information',
       endpoints: {
         mcp: '/mcp',
         health: '/health'
@@ -230,7 +231,7 @@ async function startServer(): Promise<void> {
   const PORT = process.env.PORT || 3000;
   
   app.listen(PORT, () => {
-    console.log(`🚀 Project NANDA MCP Server running on port ${PORT}`);
+    console.log(`🚀 Project Server running on port ${PORT}`);
     console.log(`📡 MCP endpoint: http://localhost:${PORT}/mcp`);
     console.log(`❤️  Health check: http://localhost:${PORT}/health`);
     console.log(`🌐 Transport: Streamable HTTP`);

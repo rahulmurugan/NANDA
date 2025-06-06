@@ -1,7 +1,7 @@
 {
-  "name": "project-nanda-mcp-server",
+  "name": "google-mcp-server",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for Project NANDA information",
+  "description": "Model Context Protocol server for Google information",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -15,14 +15,11 @@
   },
   "keywords": [
     "mcp",
-    "model-context-protocol",
-    "project-nanda",
+    "google",
     "decentralized-ai",
-    "mit",
-    "ai",
     "typescript"
   ],
-  "author": "MIT Media Lab - Project NANDA",
+  "author": "Maria",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
