@@ -89,7 +89,7 @@ async function startServer(): Promise<void> {
   app.use(express.json());
 
   // Enable CORS for all routes
-  app.use((req, res, next) => {
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Mcp-Session-Id');
@@ -105,7 +105,7 @@ async function startServer(): Promise<void> {
   const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
   // Handle MCP endpoint - supports POST, GET, and DELETE
-  app.all('/mcp', async (req, res) => {
+  app.all('/mcp', async (req: express.Request, res: express.Response) => {
     try {
       // Handle POST requests for client-to-server communication
       if (req.method === 'POST') {
@@ -204,7 +204,7 @@ async function startServer(): Promise<void> {
   });
 
   // Health check endpoint
-  app.get('/health', (_req, res) => {
+  app.get('/health', (_req: express.Request, res: express.Response) => {
     res.json({ 
       status: 'healthy', 
       service: 'google-mcp-server',
@@ -214,7 +214,7 @@ async function startServer(): Promise<void> {
   });
 
   // Root endpoint with basic info
-  app.get('/', (_req, res) => {
+  app.get('/', (_req: express.Request, res: express.Response) => {
     res.json({
       name: 'Google MCP Server',
       version: '1.0.0',
