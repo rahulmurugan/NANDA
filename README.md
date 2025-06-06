@@ -1,17 +1,18 @@
-# 🚀 Company MCP Server Template
+# Launch a Context Agent for Your Company via MCP and the NANDA Registry
 
-**Build and deploy a Model Context Protocol (MCP) server for your company in minutes!**
+## **Company MCP Server Template**  
+Quickly build and deploy a Model Context Protocol (MCP) server that makes your company discoverable and accessible to AI agents.
 
-This template provides everything you need to create an AI-accessible information server about your company. Perfect for integrating with AI systems that support MCP.
+This template helps you create a context agent—a structured, AI-readable server that provides key information about your company. Once deployed, you can register it on the NANDA registry to make it accessible across the agentic web.
 
-## 🎯 What You'll Build
+## **What You’ll Build**  
+An MCP server that enables AI systems to query your company for:
 
-An MCP server that allows AI systems to request information about your company, including:
-- Company overview and description
-- Focus areas and expertise
-- Contact information
-- Investment/partnership details
-- Any custom categories you define
+- Company overview and mission  
+- Areas of focus, expertise, and services  
+- Contact information and external links  
+- Investment, hiring, or partnership details  
+- Any custom fields you define  
 
 ## 📋 Prerequisites
 
