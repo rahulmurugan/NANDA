@@ -128,8 +128,6 @@ REFRESH_TOKEN_EXPIRY=7d
 
 # Blockchain Configuration
 RADIUS_RPC=https://rpc.stg.tryradi.us/
-EVMAUTH_ADDRESS=0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96
-REQUIRED_TOKEN_ID=0
 ```
 
 ## 📦 Deployment
