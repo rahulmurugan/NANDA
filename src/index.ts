@@ -1,6 +1,15 @@
 #!/usr/bin/env node
+import { issueJwt, refreshJwt } from "./auth/jwtIssuer.js";
+import { issueDynamicJwt, type DynamicAuthRequest } from "./auth/jwtIssuerDynamic.js";
+import { evmAuthMiddleware } from "./auth/evmAuthMiddleware.js";
+import { authLimiter, mcpLimiter, generalLimiter } from "./middleware/rateLimiter.js";
+import { revokeToken } from "./auth/tokenManager.js";
+import logger, { logAuth, logMcp } from "./utils/logger.js";
+import config from "./config/index.js";
+import metadataRouter from './routes/metadata.js';
+import { discoveryHeaders, logDiscoveryAccess, handleDiscoveryOptions } from './middleware/discoveryHeaders.js';
 
-import express from 'express';
+import express, { Request, Response, NextFunction, RequestHandler } from 'express';
 import { randomUUID } from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -88,8 +97,17 @@ async function startServer(): Promise<void> {
   const app = express();
   app.use(express.json());
 
+  // Apply general rate limiter to all routes
+  app.use(generalLimiter);
+  
+  // Add discovery logging
+  app.use(logDiscoveryAccess);
+  
+  // Add discovery headers to all responses
+  app.use(discoveryHeaders);
+  
   // Enable CORS for all routes
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const corsMiddleware: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Mcp-Session-Id');
@@ -99,13 +117,103 @@ async function startServer(): Promise<void> {
       return;
     }
     next();
-  });
+  };
+  app.use(corsMiddleware);
 
   // Map to store transports by session ID
   const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
+  // Auth endpoint
+  const authHandler: RequestHandler = async (req: Request, res: Response) => {
+    try {
+      const { address } = req.body ?? {};
+      if (!address) {
+        res.status(400).json({ error: "Missing address" });
+        return;
+      }
+    
+      const tokens = await issueJwt(address, req.ip || 'unknown');
+      res.json(tokens);
+    } catch (e) {
+      res.status(401).json({ error: (e as Error).message });
+    }
+  };
+  app.post("/auth", authLimiter, authHandler);
+  
+  // Refresh token endpoint
+  const refreshHandler: RequestHandler = async (req: Request, res: Response) => {
+    try {
+      const { refreshToken } = req.body ?? {};
+      if (!refreshToken) {
+        res.status(400).json({ error: "Missing refresh token" });
+        return;
+      }
+      
+      const tokens = await refreshJwt(refreshToken);
+      res.json(tokens);
+    } catch (e) {
+      res.status(401).json({ error: (e as Error).message });
+    }
+  };
+  app.post("/auth/refresh", refreshHandler);
+  
+  // Dynamic auth endpoint - accepts any contract/wallet on Radius
+  const dynamicAuthHandler: RequestHandler = async (req: Request, res: Response) => {
+    try {
+      const { wallet, contract, tokenId } = req.body ?? {};
+      
+      // Validate required fields
+      if (!wallet || !contract || tokenId === undefined) {
+        res.status(400).json({ 
+          error: "Missing required fields. Please provide wallet, contract, and tokenId" 
+        });
+        return;
+      }
+      
+      const authRequest: DynamicAuthRequest = {
+        wallet,
+        contract,
+        tokenId: Number(tokenId)
+      };
+      
+      const tokens = await issueDynamicJwt(authRequest, req.ip || 'unknown');
+      res.json(tokens);
+    } catch (e) {
+      res.status(401).json({ error: (e as Error).message });
+    }
+  };
+  app.post("/auth/dynamic", authLimiter, dynamicAuthHandler);
+  
+  // Revoke token endpoint
+  const revokeHandler: RequestHandler = async (req: Request, res: Response) => {
+    try {
+      // This endpoint should be protected - for now just checking JWT
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        res.status(401).json({ error: "Missing Authorization header" });
+        return;
+      }
+      
+      const { jti } = req.body ?? {};
+      if (!jti) {
+        res.status(400).json({ error: "Missing jti to revoke" });
+        return;
+      }
+      
+      revokeToken(jti);
+      logAuth.jwtRevoked(jti, 'manual-revocation');
+      res.json({ success: true });
+    } catch (e) {
+      res.status(400).json({ error: (e as Error).message });
+    }
+  };
+  app.post("/auth/revoke", evmAuthMiddleware as RequestHandler, revokeHandler);
+  
+  // Mount middlewares for MCP endpoint
+  app.use("/mcp", mcpLimiter, evmAuthMiddleware as RequestHandler);
+
   // Handle MCP endpoint - supports POST, GET, and DELETE
-  app.all('/mcp', async (req: express.Request, res: express.Response) => {
+  const mcpHandler: RequestHandler = async (req: Request, res: Response) => {
     try {
       // Handle POST requests for client-to-server communication
       if (req.method === 'POST') {
@@ -122,7 +230,7 @@ async function startServer(): Promise<void> {
             onsessioninitialized: (sessionId) => {
               // Store the transport by session ID
               transports[sessionId] = transport;
-              console.log(`Session initialized: ${sessionId}`);
+              logger.info(`Session initialized: ${sessionId}`);
             }
           });
 
@@ -130,7 +238,7 @@ async function startServer(): Promise<void> {
           transport.onclose = () => {
             if (transport.sessionId) {
               delete transports[transport.sessionId];
-              console.log(`Session closed: ${transport.sessionId}`);
+              logger.info(`Session closed: ${transport.sessionId}`);
             }
           };
 
@@ -152,6 +260,7 @@ async function startServer(): Promise<void> {
 
         // Handle the request
         await transport.handleRequest(req, res, req.body);
+        return;
       }
       // Handle GET requests for server-to-client notifications
       else if (req.method === 'GET') {
@@ -189,7 +298,8 @@ async function startServer(): Promise<void> {
         });
       }
     } catch (error) {
-      console.error('Error handling MCP request:', error);
+      logger.error('Error handling MCP request:', error);
+      logMcp.error(req.headers['mcp-session-id'] as string || 'unknown', error);
       if (!res.headersSent) {
         res.status(500).json({
           jsonrpc: '2.0',
@@ -201,56 +311,74 @@ async function startServer(): Promise<void> {
         });
       }
     }
-  });
+  };
+  app.all('/mcp', mcpHandler);
 
   // Health check endpoint
-  app.get('/health', (_req: express.Request, res: express.Response) => {
+  const healthHandler: RequestHandler = (_req: Request, res: Response) => {
     res.json({ 
       status: 'healthy', 
       service: 'starbucks-mcp-server',
       version: '1.0.0',
       timestamp: new Date().toISOString()
     });
-  });
+  };
+  app.get('/health', healthHandler);
 
   // Root endpoint with basic info
-  app.get('/', (_req: express.Request, res: express.Response) => {
+  const rootHandler: RequestHandler = (_req: Request, res: Response) => {
     res.json({
       name: 'Starbucks MCP Server',
       version: '1.0.0',
       description: 'Model Context Protocol server for Starbucks information',
       endpoints: {
         mcp: '/mcp',
-        health: '/health'
+        health: '/health',
+        auth: '/auth (legacy)',
+        authDynamic: '/auth/dynamic (flexible)',
+        metadata: '/metadata/*'
+      },
+      authentication: {
+        type: 'EVMAuth on Radius blockchain',
+        flexible: true,
+        message: 'This server accepts ANY EVMAuth token on Radius. Use /auth/dynamic with your contract details.'
       },
       transport: 'Streamable HTTP',
       company: COMPANY_INFO.name
     });
-  });
+  };
+  app.get('/', rootHandler);
+  
+  // OPTIONS handler for service discovery
+  app.options('/', handleDiscoveryOptions);
+  
+  // Metadata routes
+  app.use('/metadata', metadataRouter);
 
-  const PORT = process.env.PORT || 3000;
+  const PORT = config.port;
   
   app.listen(PORT, () => {
-    console.log(`🚀 Project Server running on port ${PORT}`);
-    console.log(`📡 MCP endpoint: http://localhost:${PORT}/mcp`);
-    console.log(`❤️  Health check: http://localhost:${PORT}/health`);
-    console.log(`🌐 Transport: Streamable HTTP`);
+    logger.info(`🚀 Project Server running on port ${PORT}`);
+    logger.info(`📡 MCP endpoint: http://localhost:${PORT}/mcp`);
+    logger.info(`❤️  Health check: http://localhost:${PORT}/health`);
+    logger.info(`🌐 Transport: Streamable HTTP`);
+    logger.info(`🔐 Environment: ${config.nodeEnv}`);
   });
 }
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down gracefully...');
+  logger.info('\n🛑 Shutting down gracefully...');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('\n🛑 Shutting down gracefully...');
+  logger.info('\n🛑 Shutting down gracefully...');
   process.exit(0);
 });
 
 // Start the server
 startServer().catch(error => {
-  console.error('❌ Failed to start server:', error);
+  logger.error('❌ Failed to start server:', error);
   process.exit(1);
 }); 

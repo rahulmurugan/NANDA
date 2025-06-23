@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && node dist/index.js",
+    "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "test": "tsx examples/test-client.ts",
     "test:server": "curl http://localhost:3000/health",
@@ -25,12 +25,21 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/express": "^5.0.0",
+    "@types/express-rate-limit": "^6.0.2",
     "@types/node": "^22.10.6",
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "ethers": "^6.14.3",
+    "evmauth": "^0.2.0",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "jsonwebtoken": "^9.0.2",
     "typescript": "^5.7.2",
+    "winston": "^3.17.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
     "eslint": "^9.17.0",
@@ -39,4 +48,4 @@
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}

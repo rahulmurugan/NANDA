@@ -1,0 +1,99 @@
+{
+  "mcpServers": {
+    "starbucks-premium": {
+      "comment": "Token-gated Starbucks MCP server discovered via NANDA registry",
+      "command": "node",
+      "args": [
+        "-e",
+        "const https = require('https'); const readline = require('readline'); const rl = readline.createInterface({ input: process.stdin, output: process.stdout }); let jwtToken = process.env.STARBUCKS_JWT_TOKEN; const serverUrl = process.env.STARBUCKS_MCP_URL || 'https://starbucks-mcp.railway.app'; if (!jwtToken) { console.error('ERROR: Missing JWT token. Set STARBUCKS_JWT_TOKEN environment variable.'); console.error('Get token from:', serverUrl + '/auth'); process.exit(1); } rl.on('line', (line) => { const url = new URL(serverUrl + '/mcp'); const options = { hostname: url.hostname, port: url.port || 443, path: url.pathname, method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwtToken } }; const req = https.request(options, (res) => { let data = ''; res.on('data', (chunk) => data += chunk); res.on('end', () => { console.log(data); if (res.statusCode === 401) { console.error('ERROR: JWT expired or invalid. Get new token from:', serverUrl + '/auth'); } }); }); req.on('error', (e) => console.error('ERROR:', e.message)); req.write(line); req.end(); });"
+      ],
+      "env": {
+        "STARBUCKS_MCP_URL": "https://starbucks-mcp.railway.app",
+        "STARBUCKS_JWT_TOKEN": "${STARBUCKS_JWT_TOKEN}"
+      }
+    },
+    "starbucks-premium-local": {
+      "comment": "Local development version of Starbucks MCP server",
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/starbucks-mcp-server",
+      "env": {
+        "PORT": "3000",
+        "NODE_ENV": "development"
+      }
+    },
+    "starbucks-premium-docker": {
+      "comment": "Docker version with automatic JWT handling",
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-e", "STARBUCKS_JWT_TOKEN=${STARBUCKS_JWT_TOKEN}",
+        "-p", "3000:3000",
+        "starbucks-mcp:latest"
+      ]
+    },
+    "starbucks-premium-curl": {
+      "comment": "Simple curl-based MCP client for testing",
+      "command": "sh",
+      "args": [
+        "-c",
+        "while IFS= read -r line; do curl -X POST https://starbucks-mcp.railway.app/mcp -H 'Content-Type: application/json' -H 'Authorization: Bearer ${STARBUCKS_JWT_TOKEN}' -d \"$line\" 2>/dev/null; echo; done"
+      ],
+      "env": {
+        "STARBUCKS_JWT_TOKEN": "${STARBUCKS_JWT_TOKEN}"
+      }
+    }
+  },
+  "_instructions": {
+    "overview": "This configuration file shows different ways to connect to the Starbucks Premium MCP server discovered via NANDA registry.",
+    "authentication": {
+      "step1": "Get your wallet address that owns the required token",
+      "step2": "POST to https://starbucks-mcp.railway.app/auth with {\"address\": \"YOUR_WALLET_ADDRESS\"}",
+      "step3": "Receive JWT tokens (access and refresh)",
+      "step4": "Set STARBUCKS_JWT_TOKEN environment variable with the access token",
+      "step5": "Use any of the above configurations"
+    },
+    "usage": {
+      "withClaude": "Add this configuration to your Claude Desktop config at ~/Library/Application Support/Claude/claude_desktop_config.json",
+      "withOtherClients": "Use the appropriate configuration for your MCP client",
+      "testing": "Use starbucks-premium-curl for quick command-line testing"
+    },
+    "tokenRefresh": {
+      "endpoint": "POST /auth/refresh",
+      "body": "{\"refreshToken\": \"YOUR_REFRESH_TOKEN\"}",
+      "note": "Access tokens expire in 15 minutes, use refresh token to get new access token"
+    },
+    "troubleshooting": {
+      "401Error": "JWT token expired or invalid - get a new one from /auth",
+      "429Error": "Rate limited - wait before making more requests",
+      "ConnectionError": "Check if server URL is correct and accessible",
+      "NoToken": "Ensure you own token ID 0 on Radius blockchain"
+    }
+  },
+  "_examples": {
+    "getCompanyOverview": {
+      "jsonrpc": "2.0",
+      "method": "tools/call",
+      "params": {
+        "name": "requestinfo",
+        "arguments": {
+          "category": "overview"
+        }
+      },
+      "id": 1
+    },
+    "getAllInformation": {
+      "jsonrpc": "2.0",
+      "method": "tools/call",
+      "params": {
+        "name": "requestinfo",
+        "arguments": {
+          "category": "all"
+        }
+      },
+      "id": 2
+    }
+  }
+}

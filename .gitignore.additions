@@ -1,0 +1,25 @@
+# Test files
+test-*.js
+test-*.html
+quick-check.js
+simple-test.js
+check-token-balance.cjs
+test-components.cjs
+test-security*.js
+test-security*.cjs
+run-full-test.sh
+
+# Dashboard (optional - depends if you want it in repo)
+dashboard/
+
+# Development helpers
+*.bak
+TEST_INSTRUCTIONS.md
+
+# Local configuration
+config.json
+.env
+
+# Build artifacts
+dist/
+*.js.map

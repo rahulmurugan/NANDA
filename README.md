@@ -1,283 +1,209 @@
-# Launch a Context Agent for Your Company via MCP and the NANDA Registry
+# Starbucks Premium MCP Server with Flexible EVMAuth
 
-## **Company Agent Template**  
-Quickly build and deploy a context agent that makes your company discoverable and accessible to AI agents.
+## 🚀 Overview
 
-This template helps you create a context agent—a structured, AI-readable server that provides key information about your company. Once deployed, you can register it on the NANDA registry to make it accessible across the agentic web.
+This is a **Model Context Protocol (MCP) server** that provides Starbucks company information through a token-gated API. The server uses EVMAuth on Radius blockchain for authentication and is designed to be registered on the NANDA registry for AI agent discovery.
 
-## **What You’ll Build**  
-A context agent that enables AI systems to query your company for:
+### Key Features
 
-- Company overview and mission  
-- Areas of focus, expertise, and services  
-- Contact information and external links  
-- Investment, hiring, or partnership details  
-- Any custom fields you define  
+- **Flexible EVMAuth Authentication**: Accepts ANY EVMAuth contract on Radius blockchain
+- **MCP Protocol**: Compatible with Claude and other AI assistants
+- **JWT Session Management**: Efficient authentication with refresh tokens
+- **NANDA Registry Ready**: Full metadata and discovery endpoints
+- **Production Security**: Rate limiting, CORS, and comprehensive logging
 
-## 📋 Prerequisites
+## 🔐 How Authentication Works
 
-- Node.js 18+ installed
-- Basic familiarity with editing JSON/TypeScript files
-- A GitHub account (for deployment)
+This server implements a flexible authentication system that works with ANY EVMAuth token on Radius:
 
-## 🛠 Step-by-Step Setup Guide
+```
+1. User provides: wallet address + contract address + token ID
+2. Server verifies ownership on Radius blockchain
+3. If valid → Issues JWT for session management
+4. JWT grants access to Starbucks data via MCP
+```
 
-### Step 1: Get the Template
+### Authentication Endpoints
 
-1. **Fork or download this repository**
-2. **Clone to your local machine:**
-   ```bash
-   git clone <your-repo-url>
-   cd <your-repo-name>
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-### Step 2: Customize for Your Company
-
-#### 📝 **File 1: `package.json` - Project Information**
-
-Update these fields with your company info:
-
-```json
+#### Dynamic Authentication (Recommended)
+```bash
+POST /auth/dynamic
 {
-  "name": "your-company-mcp-server",           // ← Change this
-  "description": "MCP server for Your Company information",  // ← Change this
-  "author": "Your Company Name",               // ← Change this
-  "keywords": [
-    "mcp",
-    "model-context-protocol", 
-    "your-company-name",                       // ← Change this
-    "ai",
-    "typescript"
-  ]
+  "wallet": "0xYourWalletAddress",
+  "contract": "0xAnyEVMAuthContract",
+  "tokenId": 42
 }
 ```
 
-#### 🏢 **File 2: `src/index.ts` - Company Information**
-
-This is the main file you need to customize. Find the `COMPANY_INFO` section (around line 10) and replace with your details:
-
-```typescript
-const COMPANY_INFO = {
-  name: "Your Company Name",                   // ← Change this
-  
-  description: `Write a compelling description of your company here. 
-  What do you do? What's your mission? What makes you unique? 
-  This will be the main overview that AI systems will see.`,  // ← Change this
-  
-  focus_areas: [                               // ← Change these
-    "Your Main Service/Product Area",
-    "Another Key Focus Area", 
-    "Technology Stack You Use",
-    "Industry You Serve",
-    "Your Expertise Areas"
-  ],
-  
-  stage: "Description of your company stage",  // ← Change this
-  // Examples: "Early-stage startup", "Established company", "Fortune 500", etc.
-  
-  approach: "Your company's approach/methodology",  // ← Change this
-  // Examples: "Customer-first design", "Agile development", "Data-driven decisions"
-  
-  network: "Your network/partnerships description",  // ← Change this
-  // Examples: "Global partner network", "Industry associations", "Client base"
-  
-  website: "https://yourcompany.com",          // ← Change this
-  contact: "hello@yourcompany.com"             // ← Change this
-};
-```
-
-#### 🤖 **File 3: `src/index.ts` - Server Name**
-
-Find the server creation section (around line 31) and update:
-
-```typescript
-const server = new McpServer({
-  name: "your-company-server",                 // ← Change this
-  version: "1.0.0"
-});
-```
-
-#### 📱 **File 4: `examples/mcp-client-config.json` - MCP Client Configuration**
-
-Update the server name for MCP client integration:
-
-```json
+#### Legacy Authentication
+```bash
+POST /auth
 {
-  "mcpServers": {
-    "your-company": {                          // ← Change this
-      "comment": "Example configuration for MCP clients - update with your company details",
-      "command": "node",
-      "args": ["dist/index.js"],
-      "env": {
-        "PORT": "3000"
-      }
-    }
-  }
+  "address": "0xYourWalletAddress"
 }
 ```
 
-### Step 3: Test Your Server
+## 🚀 Quick Start
 
-1. **Build the project:**
-   ```bash
-   npm run build
-   ```
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- A wallet with any EVMAuth token on Radius blockchain
 
-2. **Start the server:**
-   ```bash
-   npm start
-   ```
-
-3. **Test it works:**
-   ```bash
-   npm test
-   ```
-
-   You should see your company information displayed for different categories!
-
-### Step 4: Test with MCP Inspector
-
-1. **Open MCP Inspector:**
-   ```bash
-   npx @modelcontextprotocol/inspector
-   ```
-
-2. **In the inspector interface:**
-   - Transport Type: `Streamable HTTP`
-   - URL: `http://localhost:3000/mcp`
-   - Click **Connect**
-
-3. **Test the `requestinfo` tool:**
-   - Try different categories: `"overview"`, `"focus"`, `"contact"`, `"all"`
-   - Verify your company information appears correctly
-
-## 🚀 Deployment Options
-
-### Option 1: Railway (Recommended - Free & Easy)
-
-1. **Create Railway account:** [railway.app](https://railway.app)
-2. **Connect your GitHub repo**
-3. **Deploy automatically** - Railway detects the configuration
-4. **Get your URL** - Use `https://your-app.railway.app/mcp` for AI integration
-
-### Option 2: Docker
+### Installation
 
 ```bash
-docker build -t your-company-mcp .
-docker run -p 3000:3000 your-company-mcp
+# Clone the repository
+git clone <repository-url>
+cd hackathon
+
+# Install dependencies
+npm install
+
+# Copy environment variables
+cp .env.example .env
+
+# Build the TypeScript code
+npm run build
+
+# Start the server
+npm start
 ```
 
-### Option 3: Other Platforms
+The server will start on `http://localhost:3000`
 
-The server works on any platform that supports Node.js. See `DEPLOYMENT.md` for detailed instructions.
+## 📡 API Endpoints
 
-## 🤖 Ready for AI Integration
+### Core Endpoints
+- `GET /` - Server information and available endpoints
+- `GET /health` - Health check endpoint
+- `POST /auth/dynamic` - Flexible authentication with any EVMAuth contract
+- `POST /auth` - Legacy authentication (uses default contract)
+- `POST /auth/refresh` - Refresh JWT tokens
+- `POST /mcp` - MCP protocol endpoint (requires JWT)
 
-Your deployed MCP server is now ready for AI systems to connect to at: `https://your-deployed-url.com/mcp`
+### Metadata Endpoints (for NANDA)
+- `GET /metadata` - General server metadata
+- `GET /metadata/discovery` - Service discovery information
+- `GET /metadata/nanda` - NANDA registry format
+- `GET /metadata/requirements` - Authentication requirements
+- `GET /metadata/tools` - Available MCP tools
 
-For advanced users who want to integrate with AI systems, see the configuration examples in `examples/mcp-client-config.json`.
+## 🛠️ MCP Tools Available
 
-## 🎨 Advanced Customization
+### `requestinfo` Tool
+Retrieves Starbucks company information in various categories:
+- `overview` - Company description and overview
+- `focus` - Focus areas and strategic priorities
+- `investment` - Investment details and financials
+- `contact` - Contact information
+- `all` - Complete information
 
-### Adding More Information Categories
+## 🌐 NANDA Registry Integration
 
-In `src/index.ts`, you can add more cases to the switch statement:
+This server is designed to be registered on the NANDA registry, enabling AI agents to:
+1. Discover the service when searching for company data
+2. Understand authentication requirements
+3. Access the service with proper credentials
 
-```typescript
-case "pricing":
-  responseText = `${COMPANY_INFO.name} Pricing Information:\n\n[Your pricing details]`;
-  break;
-  
-case "team":
-  responseText = `${COMPANY_INFO.name} Team:\n\n[Your team information]`;
-  break;
+### Registration Process
+1. Deploy the server to a public URL (e.g., Railway)
+2. Visit https://ui.nanda-registry.com/
+3. Register your service using metadata from `/metadata/nanda`
+4. AI agents can now discover and use your service
+
+## 🔧 Configuration
+
+### Environment Variables
+Create a `.env` file with:
+```env
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# JWT Configuration
+JWT_SECRET=your-secret-key-here
+ACCESS_TOKEN_EXPIRY=15m
+REFRESH_TOKEN_EXPIRY=7d
+
+# Blockchain Configuration
+RADIUS_RPC=https://rpc.stg.tryradi.us/
+EVMAUTH_ADDRESS=0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96
+REQUIRED_TOKEN_ID=0
 ```
 
-### Adding More Tools
+## 📦 Deployment
 
-You can add additional tools beyond `requestinfo`:
+### Railway (Recommended)
+1. Push code to GitHub
+2. Connect Railway to your repository
+3. Set environment variables in Railway dashboard
+4. Deploy automatically
 
-```typescript
-server.tool(
-  "get_case_studies",
-  {
-    industry: z.string().optional().describe("Filter by industry")
-  },
-  async ({ industry }) => {
-    // Your implementation here
-    return {
-      content: [{
-        type: "text", 
-        text: "Your case studies information"
-      }]
-    };
-  }
-);
+### Docker
+```bash
+docker build -t starbucks-mcp .
+docker run -p 3000:3000 --env-file .env starbucks-mcp
 ```
 
-## 📁 Project Structure
+## 🧪 Testing
+
+### Test Dynamic Authentication
+```bash
+curl -X POST http://localhost:3000/auth/dynamic \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wallet": "0xYourWallet",
+    "contract": "0xAnyEVMAuthContract",
+    "tokenId": 0
+  }'
+```
+
+### Test with JWT
+```bash
+curl http://localhost:3000/mcp \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+## 🏗️ Architecture
 
 ```
 ├── src/
-│   └── index.ts          # Main server code (CUSTOMIZE THIS)
-├── examples/
-│   ├── mcp-client-config.json # MCP client config (CUSTOMIZE THIS)
-│   └── test-client.ts     # Test script
-├── package.json           # Project info (CUSTOMIZE THIS)
-├── tsconfig.json         # TypeScript config (NO CHANGES NEEDED)
-├── Dockerfile            # Docker config (NO CHANGES NEEDED)
-├── Procfile             # Railway config (NO CHANGES NEEDED)
-└── README.md            # This file
+│   ├── auth/              # Authentication logic
+│   │   ├── evmAuthMiddleware.ts
+│   │   ├── jwtIssuer.ts
+│   │   ├── jwtIssuerDynamic.ts
+│   │   └── tokenManager.ts
+│   ├── config/            # Configuration
+│   ├── middleware/        # Express middleware
+│   ├── nanda/            # NANDA registry integration
+│   ├── routes/           # API routes
+│   └── utils/            # Utilities
+├── dist/                 # Compiled JavaScript
+└── package.json
 ```
 
-## 🆘 Troubleshooting
+## 🔒 Security Features
 
-### Server won't start
-- Make sure you ran `npm install`
-- Check that Node.js 18+ is installed
-- Try `npm run build` first
+- **Rate Limiting**: Protects against abuse
+- **JWT Authentication**: Secure session management
+- **Token Revocation**: Support for blacklisting tokens
+- **Input Validation**: Validates all user inputs
+- **CORS Configuration**: Controlled cross-origin access
+- **Comprehensive Logging**: Security and audit logs
 
-### Inspector can't connect
-- Make sure server is running (`npm start`)
-- Use the correct URL: `http://localhost:3000/mcp`
-- Check the server logs for errors
+## 🤝 Use Cases
 
-### AI can't access deployed server
-- Verify the deployment URL works: `https://your-url.com/health`
-- Make sure you're using the `/mcp` endpoint
-- Check CORS settings if accessing from browser
+1. **Multi-Company Access**: Different companies can grant access using their own EVMAuth tokens
+2. **Partner Integration**: Partners can use their contracts for access control
+3. **Tiered Access**: Different token IDs can represent different access levels
+4. **DAO Governance**: DAOs can control access through their token contracts
 
-## 💡 Tips for Success
+## 📝 License
 
-1. **Keep descriptions clear and concise** - AI systems work better with well-structured information
-2. **Test thoroughly** - Use the inspector and test client to verify everything works
-3. **Start simple** - Get the basic info working before adding advanced features
-4. **Monitor logs** - Check server logs to debug issues
+MIT
 
-## 🎉 You're Done!
+## 🙏 Acknowledgments
 
-Congratulations! You now have a working, deployed MCP server for your company! Your server is:
-
-✅ **Live and accessible** - Running on the web with a public URL  
-✅ **MCP compliant** - Ready for AI systems to discover and use  
-✅ **Production ready** - Includes health checks, error handling, and proper deployment  
-✅ **Customizable** - Easy to extend with more tools and information
-
-This creates new possibilities for integrating your company information with AI systems and building innovative applications.
-
-## 📚 Learn More
-
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-- [NANDA: The Internet of AI Agents](https://nanda.media.mit.edu)
-
----
-
-**Happy building! 🚀**
-
-*Made with ❤️ for the developer community* 
+Built for the NANDA ecosystem to demonstrate token-gated AI services on Radius blockchain.
